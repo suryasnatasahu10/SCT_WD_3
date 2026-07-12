@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe App</title>
+    <style>
+        * { box-sizing: border-box; font-family: sans-serif; }
+        body {
+            background-color: #111827;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        h1 { margin-bottom: 5px; }
+        .controls { margin-bottom: 15px; }
+        .status { font-size: 1.2rem; margin-bottom: 20px; color: #a7f3d0; height: 24px;}
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 8px;
+        }
+        .cell {
+            background-color: #1f2937;
+            border: 2px solid #374151;
+            border-radius: 8px;
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .cell:hover { background-color: #374151; }
+        .cell.X { color: #f43f5e; }
+        .cell.O { color: #3b82f6; }
+        button.reset-btn {
+            margin-top: 25px;
+            padding: 10px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            background-color: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button.reset-btn:hover { background-color: #059669; }
+        select {
+            padding: 6px;
+            border-radius: 4px;
+            background: #374151;
+            color: white;
+            border: 1px solid #4b5563;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Tic-Tac-Toe</h1>
+    <div class="controls">
+        <label>Mode: </label>
+        <select id="gameMode" onchange="resetGame()">
+            <option value="pvp">Player vs Player</option>
+            <option value="ai">Player vs Computer</option>
+        </select>
+    </div>
+
+    <div class="status" id="statusPanel">Player X's turn</div>
+
+    <div class="board" id="board">
+        <div class="cell" data-index="0" onclick="handleCellClick(this)"></div>
+        <div class="cell" data-index="1" onclick="handleCellClick(this)"></div>
+        <div class="cell" data-index="2" onclick="handleCellClick(this)"></div>
+        <div class="cell" data-index="3" onclick="handleCellClick(this)"></div>
+        <div class="cell" data-index="4" onclick="handleCellClick(this)"></div>
+        <div class="cell" data-index="5" onclick="handleCellClick(this)"></div>
+        <div class="cell" data-index="6" onclick="handleCellClick(this)"></div>
+        <div class="cell" data-index="7" onclick="handleCellClick(this)"></div>
+        <div class="cell" data-index="8" onclick="handleCellClick(this)"></div>
+    </div>
+
+    <button class="reset-btn" onclick="resetGame()">Reset Game</button>
+
+    <script>
+        let boardState = ["", "", "", "", "", "", "", "", ""];
+        let currentPlayer = "X"; 
+        let isGameActive = true;
+        const statusPanel = document.getElementById('statusPanel');
+        const cells = document.querySelectorAll('.cell');
+
+        const winConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Horizontal
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Vertical
+            [0, 4, 8], [2, 4, 6]             // Diagonal
+        ];
+
+        function handleCellClick(cell) {
+            const index = cell.getAttribute('data-index');
+
+            if (boardState[index] !== "" || !isGameActive) return;
+
+            makeMove(index, currentPlayer);
+            checkResult();
+
+            if (isGameActive && document.getElementById('gameMode').value === 'ai' && currentPlayer === 'O') {
+                setTimeout(computerMove, 400);
+            }
+        }
+
+        function makeMove(index, player) {
+            boardState[index] = player;
+            cells[index].innerText = player;
+            cells[index].classList.add(player);
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            statusPanel.innerText = `Player ${currentPlayer}'s turn`;
+        }
+
+        function computerMove() {
+            let emptyCells = [];
+            boardState.forEach((val, idx) => { if(val === "") emptyCells.push(idx); });
+            
+            if(emptyCells.length > 0) {
+                const randomIdx = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                makeMove(randomIdx, "O");
+                checkResult();
+            }
+        }
+
+        function checkResult() {
+            let roundWon = false;
+            for (let i = 0; i < winConditions.length; i++) {
+                const [a, b, c] = winConditions[i];
+                if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+                    roundWon = true;
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                // Invert because signature swapped at finalization line
+                const winner = currentPlayer === "X" ? "O" : "X";
+                statusPanel.innerText = `Player ${winner} wins!`;
+                isGameActive = false;
+                return;
+            }
+
+            if (!boardState.includes("")) {
+                statusPanel.innerText = "It's a Draw!";
+                isGameActive = false;
+                return;
+            }
+        }
+
+        function resetGame() {
+            boardState = ["", "", "", "", "", "", "", "", ""];
+            currentPlayer = "X";
+            isGameActive = true;
+            statusPanel.innerText = "Player X's turn";
+            cells.forEach(cell => {
+                cell.innerText = "";
+                cell.className = "cell";
+            });
+        }
+    </script>
+</body>
+</html>
